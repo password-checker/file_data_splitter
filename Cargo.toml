@@ -1,0 +1,19 @@
+[package]
+name = "file_data_splitter"
+version = "0.1.0"
+authors = ["Ariel Kuechler <github.ariel@kuechler.info>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = "2.33.1"
+
+
+[profile.release]
+opt-level = 3
+# opt-level = 'z'
+lto = true
+debug = false
+codegen-units = 1   # Reduce number of codegen units to increase optimizations.
+# panic = 'abort'     # Abort on panic
