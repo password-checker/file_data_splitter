@@ -8,10 +8,28 @@ fn main() -> io::Result<()> {
         Ok(_) => Ok(()),
         _ => Err(format!("Value have to be a number, not '{}'.", &value)),
     };
+    let version: Option<&'static str> = option_env!("CARGO_PKG_VERSION");
+    let authors: Option<&'static str> = option_env!("CARGO_PKG_AUTHORS");
     let matches = App::new("File Data Splitter")
-        .version("0.1.0")
-        .author("Ariel Kuechler <github.ariel@kuechler.info>")
-        .about("Splitt lines from a file in folder and file structure.")
+        .version(version.unwrap())
+        .author(authors.unwrap())
+        .about("Split lines from a source file in folder and file structure.")
+        .long_about(
+            &format!(
+                "{}\n\n{}\n{}\n{}\n{}\n\n{}\n{}\n\n{}\n{}\n\n{}\n{}",
+                "Split lines from a source file in folder and file structure.",
+                "For example: the line '415ab40ae9b7cc4e66d6769cb2c08106e8293b48'",
+                "will saved in the file '<OUTPUT_FOLDER>/415/ab.txt'.",
+                "The used part '415ab' is removed and the remaining line",
+                "is written '40ae9b7cc4e66d6769cb2c08106e8293b48'.",
+                "Limit: The source lines must be sorted.",
+                "When the file is opened for writing, the file is recreated.",
+                "Limit: There is not handling for upper and lower case.",
+                "All letters have to be in one case or the file system have to handle both cases.",
+                "Limit: The line length have to be at least <directory-length> + <file-length>.",
+                "In the example these are 5 signs."
+            )[..],
+        )
         .arg(
             Arg::with_name("directory-length")
                 .short("d")
@@ -42,12 +60,13 @@ fn main() -> io::Result<()> {
             Arg::with_name("OUTPUT_FOLDER")
                 .help("Sets the output folder to use")
                 .required(false)
-                .index(2),
+                .index(2)
+                .default_value("file_output"),
         )
         .get_matches();
 
-    let target_folder = matches.value_of("OUTPUT_FOLDER").unwrap_or("file_output");
-    let source = matches.value_of("INPUT_FILE").unwrap_or("test.txt");
+    let target_folder = matches.value_of("OUTPUT_FOLDER").unwrap();
+    let source = matches.value_of("INPUT_FILE").unwrap();
     let folder_length = matches
         .value_of("directory-length")
         .unwrap()
