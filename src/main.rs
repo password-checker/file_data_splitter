@@ -3,14 +3,11 @@ extern crate clap;
 use clap::{App, Arg};
 use file_data_splitter::run;
 
-fn validate_usize(value: String) -> Result<(), String> {
-    match value.parse::<usize>() {
-        Ok(_) => Ok(()),
-        _ => Err(format!("Value have to be a number, not {}.", &value)),
-    }
-}
-
 fn main() -> io::Result<()> {
+    let validate_usize = |value: String| match value.parse::<usize>() {
+        Ok(_) => Ok(()),
+        _ => Err(format!("Value have to be a number, not '{}'.", &value)),
+    };
     let matches = App::new("File Data Splitter")
         .version("0.1.0")
         .author("Ariel Kuechler <github.ariel@kuechler.info>")
