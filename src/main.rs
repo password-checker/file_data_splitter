@@ -46,7 +46,7 @@ fn main() -> io::Result<()> {
         )
         .get_matches();
 
-    let base_folder = matches.value_of("OUTPUT_FOLDER").unwrap_or("file_output");
+    let target_folder = matches.value_of("OUTPUT_FOLDER").unwrap_or("file_output");
     let source = matches.value_of("INPUT_FILE").unwrap_or("test.txt");
     let folder_length = matches
         .value_of("directory-length")
@@ -58,5 +58,5 @@ fn main() -> io::Result<()> {
         .unwrap()
         .parse::<usize>()
         .unwrap();
-    run(&base_folder, &source, folder_length, file_length)
+    run(&source, &target_folder, folder_length, file_length)
 }

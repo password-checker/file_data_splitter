@@ -3,7 +3,7 @@ use std::io::{self, prelude::*, BufReader, BufWriter};
 use std::path::Path;
 use std::time::Instant;
 
-#[inline(always)]
+#[inline]
 fn create_folder_by_path(folder: &str) -> Result<(), io::Error> {
     let path = Path::new(&folder);
     if !path.exists() {
@@ -13,19 +13,19 @@ fn create_folder_by_path(folder: &str) -> Result<(), io::Error> {
     Ok(())
 }
 
-#[inline(always)]
+#[inline]
 fn create_folder_path(parent: &str, name: &str) -> String {
     format!("{}/{}", parent, name)
 }
 
-#[inline(always)]
+#[inline]
 fn create_folder(parent: &str, name: &str) -> Result<String, io::Error> {
     let p = create_folder_path(parent, name);
     create_folder_by_path(&p).expect(&format!("Unable to create folder {}", &p));
     Ok(p)
 }
 
-#[inline(always)]
+#[inline]
 fn open_file(parent: &str, name: &str) -> Result<BufWriter<File>, io::Error> {
     let p = format!("{}/{}.txt", parent, name);
     //println!("Open file {}", p);
@@ -35,16 +35,16 @@ fn open_file(parent: &str, name: &str) -> Result<BufWriter<File>, io::Error> {
 }
 
 pub fn run(
-    base_folder: &str,
     source: &str,
+    target_folder: &str,
     folder_length: usize,
     file_length: usize,
 ) -> io::Result<()> {
     let start_lookup = Instant::now();
 
     // create target folder
-    create_folder_by_path(base_folder)
-        .expect(&format!("Could not create base folder {}", base_folder));
+    create_folder_by_path(target_folder)
+        .expect(&format!("Could not create base folder {}", target_folder));
 
     // variables for looping
     let mut current_folder = String::from(""); // current used folder name
@@ -57,7 +57,7 @@ pub fn run(
     for l in reader.lines() {
         let line = l?;
 
-        // spit
+        // split
         let folder = String::from(line.get(..folder_length).unwrap());
         let file = String::from(
             line.get(folder_length..(folder_length + file_length))
@@ -68,13 +68,13 @@ pub fn run(
         // create folder if needed, if folder is changed (from prio loop pass) current_file will be deleted
         let created_folder = if current_folder == folder {
             // current folder is the same as last loop pass: only build correct path
-            create_folder_path(base_folder, &folder)
+            create_folder_path(target_folder, &folder)
         } else {
             // folder has changed: create (is needed) folder
             current_file = String::from("");
-            create_folder(base_folder, &folder).expect(&format!(
+            create_folder(target_folder, &folder).expect(&format!(
                 "Could not create folder {} {}",
-                base_folder, &folder
+                target_folder, &folder
             ))
         };
 
