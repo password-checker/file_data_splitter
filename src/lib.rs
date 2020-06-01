@@ -21,7 +21,7 @@ fn create_folder_path(parent: &str, name: &str) -> String {
 #[inline]
 fn create_folder(parent: &str, name: &str) -> Result<String, io::Error> {
     let p = create_folder_path(parent, name);
-    create_folder_by_path(&p).expect(&format!("Unable to create folder {}", &p));
+    create_folder_by_path(&p).expect(&format!("Unable to create folder {}", p));
     Ok(p)
 }
 
@@ -30,7 +30,7 @@ fn open_file(parent: &str, name: &str) -> Result<BufWriter<File>, io::Error> {
     let p = format!("{}/{}.txt", parent, name);
     //println!("Open file {}", p);
     let file = File::create(&p).expect(&format!("Unable to create file {}", &p));
-    let writer = BufWriter::new(file);
+    let writer = BufWriter::with_capacity(32 * 1024, file);
     Ok(writer)
 }
 
@@ -47,9 +47,13 @@ pub fn run(
         .expect(&format!("Could not create base folder {}", target_folder));
 
     // variables for looping
-    let mut current_folder = String::from(""); // current used folder name
-    let mut current_file = String::from(""); // current used file name
+    let mut current_folder = String::new(); // current used folder name
+    let mut current_file = String::new(); // current used file name
     let mut opened_file: Option<BufWriter<File>> = Option::None; // BufWriter (opened file)
+
+    // precalculated variables for loop
+    let s1 = folder_length;
+    let s2 = folder_length + file_length;
 
     // loop tru every line
     let source_file = File::open(source).expect(&format!("Could not open source file {}", source));
@@ -58,54 +62,48 @@ pub fn run(
         let line = l?;
 
         // split
-        let folder = String::from(line.get(..folder_length).unwrap());
-        let file = String::from(
-            line.get(folder_length..(folder_length + file_length))
-                .unwrap(),
-        );
-        let value = line.get(5..).unwrap();
+        let folder = &line[..s1];
+        let file = &line[s1..s2];
+        let value = line[s2..].as_bytes();
 
         // create folder if needed, if folder is changed (from prio loop pass) current_file will be deleted
-        let created_folder = if current_folder == folder {
+        let created_folder = if current_folder.eq(folder) {
             // current folder is the same as last loop pass: only build correct path
-            create_folder_path(target_folder, &folder)
+            create_folder_path(target_folder, folder)
         } else {
             // folder has changed: create (is needed) folder
-            current_file = String::from("");
-            create_folder(target_folder, &folder).expect(&format!(
+            current_file = String::new();
+            create_folder(target_folder, folder).expect(&format!(
                 "Could not create folder {} {}",
-                target_folder, &folder
+                target_folder, folder
             ))
         };
 
         // open correct file
-        let add_newline;
-        let mut writer = if current_file == file {
+        let mut writer = if current_file.eq(file) {
             // file is already opened: reuse BufWriter (and add a new line sign)
-            add_newline = true;
-            opened_file.unwrap()
+            let mut w = opened_file.unwrap();
+            w.write_all(b"\n").expect("Unable to write newline");
+            w
         } else {
+            if opened_file.is_some() {
+                // here flush before dropping to find errors; automatic flush before dropping catches all errors
+                opened_file.unwrap().flush()?;
+            }
             // file is new to open: open
-            add_newline = false;
-            open_file(&created_folder, &file).expect(&format!(
-                "Could not open file {} {}",
-                &created_folder, &file
-            ))
+            open_file(&created_folder, file)
+                .expect(&format!("Could not open file {} {}", &created_folder, file))
         };
 
-        // add newline (if file is already opened)
-        if add_newline {
-            writer.write_all(b"\n").expect("Unable to write newline");
-        }
         // write line
         writer
-            .write_all(value.as_bytes())
-            .expect(&format!("Unable to write data {}", &file));
+            .write_all(value)
+            .expect(&format!("Unable to write data {}", file));
 
         // set values for next loop pass
         opened_file = Some(writer);
-        current_file = file;
-        current_folder = folder;
+        current_file = String::from(file);
+        current_folder = String::from(folder);
     }
 
     let elapsed = start_lookup.elapsed();
