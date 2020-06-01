@@ -3,6 +3,23 @@ use std::io::{self, prelude::*, BufReader, BufWriter};
 use std::path::Path;
 use std::time::Instant;
 
+#[inline(always)]
+fn create_folder_path(parent: &str, name: &str) -> String {
+    let mut s = parent.to_owned();
+    s.push('/');
+    s.push_str(name);
+    s
+}
+
+#[inline(always)]
+fn create_file_name(parent: &str, name: &str) -> String {
+    let mut s = parent.to_owned();
+    s.push('/');
+    s.push_str(name);
+    s.push_str(".txt");
+    s
+}
+
 #[inline]
 fn create_folder_by_path(folder: &str) -> Result<(), io::Error> {
     let path = Path::new(&folder);
@@ -14,11 +31,6 @@ fn create_folder_by_path(folder: &str) -> Result<(), io::Error> {
 }
 
 #[inline]
-fn create_folder_path(parent: &str, name: &str) -> String {
-    format!("{}/{}", parent, name)
-}
-
-#[inline]
 fn create_folder(parent: &str, name: &str) -> Result<String, io::Error> {
     let p = create_folder_path(parent, name);
     create_folder_by_path(&p).expect(&format!("Unable to create folder {}", p));
@@ -27,7 +39,7 @@ fn create_folder(parent: &str, name: &str) -> Result<String, io::Error> {
 
 #[inline]
 fn open_file(parent: &str, name: &str) -> Result<BufWriter<File>, io::Error> {
-    let p = format!("{}/{}.txt", parent, name);
+    let p = create_file_name(parent, name);
     //println!("Open file {}", p);
     let file = File::create(&p).expect(&format!("Unable to create file {}", &p));
     let writer = BufWriter::with_capacity(32 * 1024, file);
