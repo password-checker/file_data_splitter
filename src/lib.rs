@@ -1,5 +1,9 @@
-use std::fs::{self, File};
-use std::io::{self, prelude::*, BufReader, BufWriter};
+use std::fs::{self, File, OpenOptions};
+use std::io::{
+    self,
+    prelude::{BufRead, Write},
+    BufReader, BufWriter,
+};
 use std::path::Path;
 use std::time::Instant;
 
@@ -38,11 +42,15 @@ fn create_folder(parent: &str, name: &str) -> Result<String, io::Error> {
 }
 
 #[inline]
-fn open_file(parent: &str, name: &str) -> Result<BufWriter<File>, io::Error> {
+fn open_file(parent: &str, name: &str, buffer_size: usize) -> Result<BufWriter<File>, io::Error> {
     let p = create_file_name(parent, name);
     //println!("Open file {}", p);
-    let file = File::create(&p).expect(&format!("Unable to create file {}", &p));
-    let writer = BufWriter::with_capacity(32 * 1024, file);
+    let file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&p)
+        .expect(&format!("Unable to create file {}", &p));
+    let writer = BufWriter::with_capacity(buffer_size, file);
     Ok(writer)
 }
 
@@ -51,6 +59,7 @@ pub fn run(
     target_folder: &str,
     folder_length: usize,
     file_length: usize,
+    buffer_size: usize,
 ) -> io::Result<()> {
     let start_lookup = Instant::now();
 
@@ -103,7 +112,7 @@ pub fn run(
                 opened_file.unwrap().flush()?;
             }
             // file is new to open: open
-            open_file(&created_folder, file)
+            open_file(&created_folder, file, buffer_size)
                 .expect(&format!("Could not open file {} {}", &created_folder, file))
         };
 

@@ -10,14 +10,14 @@ will saved in the file '<OUTPUT_FOLDER>/415/ab.txt'.
 The used part '415ab' is removed and the remaining line
 is written '40ae9b7cc4e66d6769cb2c08106e8293b48'.
 
-Limit: The source lines must be sorted.
-When the file is opened for writing, the file is recreated.
+Hint: The source lines should be sorted. If the file is sorted,
+each target file is written only once and does not need to be opened again and again.
 
-Limit: There is not handling for upper and lower case.
+Hint: There is no different handling for upper and lower case.
 All letters have to be in one case or the file system have to handle both cases.
 
-Limit: The line length have to be at least <directory-length> + <file-length>.
-In the example these are 5 signs.
+Limits: The line length have to be at least <directory-length> + <file-length>.
+In the example these are 5 signs. The splitting is done by signs, not by graphemes!
 
 USAGE:
     file_data_splitter [OPTIONS] <INPUT_FILE> [OUTPUT_FOLDER]
@@ -31,10 +31,13 @@ FLAGS:
 
 
 OPTIONS:
-    -d, --directory-length <LENGTH>    
+    -b, --buffer-size <BYTES>                   
+            Defines the buffer size for the file write buffer. [default: 32768]
+
+    -d, --directory-length <NUMBER OF CHARS>    
             Sets the length of the directory names [default: 3]
 
-    -f, --file-length <LENGTH>         
+    -f, --file-length <NUMBER OF CHARS>         
             Sets the length of the file names [default: 2]
 
 

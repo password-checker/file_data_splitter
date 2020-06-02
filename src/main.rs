@@ -22,19 +22,19 @@ fn main() -> io::Result<()> {
                 "will saved in the file '<OUTPUT_FOLDER>/415/ab.txt'.",
                 "The used part '415ab' is removed and the remaining line",
                 "is written '40ae9b7cc4e66d6769cb2c08106e8293b48'.",
-                "Limit: The source lines must be sorted.",
-                "When the file is opened for writing, the file is recreated.",
-                "Limit: There is not handling for upper and lower case.",
+                "Hint: The source lines should be sorted. If the file is sorted,",
+                "each target file is written only once and does not need to be opened again and again.",
+                "Hint: There is no different handling for upper and lower case.",
                 "All letters have to be in one case or the file system have to handle both cases.",
-                "Limit: The line length have to be at least <directory-length> + <file-length>.",
-                "In the example these are 5 signs."
+                "Limits: The line length have to be at least <directory-length> + <file-length>.",
+                "In the example these are 5 signs. The splitting is done by signs, not by graphemes!"
             )[..],
         )
         .arg(
             Arg::with_name("directory-length")
                 .short("d")
                 .long("directory-length")
-                .value_name("LENGTH")
+                .value_name("NUMBER OF CHARS")
                 .help("Sets the length of the directory names")
                 .takes_value(true)
                 .default_value("3")
@@ -44,10 +44,20 @@ fn main() -> io::Result<()> {
             Arg::with_name("file-length")
                 .short("f")
                 .long("file-length")
-                .value_name("LENGTH")
+                .value_name("NUMBER OF CHARS")
                 .help("Sets the length of the file names")
                 .takes_value(true)
                 .default_value("2")
+                .validator(validate_usize),
+        )
+        .arg(
+            Arg::with_name("buffer-size")
+                .short("b")
+                .long("buffer-size")
+                .value_name("BYTES")
+                .help("Defines the buffer size for the file write buffer.")
+                .takes_value(true)
+                .default_value("32768")
                 .validator(validate_usize),
         )
         .arg(
@@ -77,5 +87,16 @@ fn main() -> io::Result<()> {
         .unwrap()
         .parse::<usize>()
         .unwrap();
-    run(&source, &target_folder, folder_length, file_length)
+    let buffer_size = matches
+        .value_of("buffer-size")
+        .unwrap()
+        .parse::<usize>()
+        .unwrap();
+    run(
+        &source,
+        &target_folder,
+        folder_length,
+        file_length,
+        buffer_size,
+    )
 }

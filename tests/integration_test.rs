@@ -28,7 +28,7 @@ mod tests {
         if Path::new("target/test_output").exists() {
             fs::remove_dir_all("target/test_output")?;
         }
-        run("tests/test2.txt", "target/test_output", 3, 2)?;
+        run("tests/test2.txt", "target/test_output", 3, 2, 1024)?;
 
         // check folders
         check_folder_count("target/test_output", 2)?;
