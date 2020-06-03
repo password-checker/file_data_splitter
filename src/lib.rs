@@ -1,8 +1,7 @@
-use std::fs::{self, File, OpenOptions};
+use std::fs::{create_dir, read_dir, File, OpenOptions};
 use std::io::{
-    self,
     prelude::{BufRead, Write},
-    BufReader, BufWriter,
+    BufReader, BufWriter, Error, ErrorKind,
 };
 use std::path::Path;
 use std::time::Instant;
@@ -25,24 +24,24 @@ fn create_file_name(parent: &str, name: &str) -> String {
 }
 
 #[inline]
-fn create_folder_by_path(folder: &str) -> Result<(), io::Error> {
+fn create_folder_by_path(folder: &str) -> Result<(), Error> {
     let path = Path::new(&folder);
     if !path.exists() {
-        fs::create_dir(path).expect(&format!("Unable to create folder {}", &folder));
+        create_dir(path).expect(&format!("Unable to create folder {}", &folder));
         println!("Create folder {}", folder);
     };
     Ok(())
 }
 
 #[inline]
-fn create_folder(parent: &str, name: &str) -> Result<String, io::Error> {
+fn create_folder(parent: &str, name: &str) -> Result<String, Error> {
     let p = create_folder_path(parent, name);
     create_folder_by_path(&p).expect(&format!("Unable to create folder {}", p));
     Ok(p)
 }
 
 #[inline]
-fn open_file(parent: &str, name: &str, buffer_size: usize) -> Result<BufWriter<File>, io::Error> {
+fn open_file(parent: &str, name: &str, buffer_size: usize) -> Result<BufWriter<File>, Error> {
     let p = create_file_name(parent, name);
     //println!("Open file {}", p);
     let file = OpenOptions::new()
@@ -54,18 +53,28 @@ fn open_file(parent: &str, name: &str, buffer_size: usize) -> Result<BufWriter<F
     Ok(writer)
 }
 
+#[inline]
+fn directory_is_empty(path: &str) -> Result<(), Error> {
+    let mut paths = read_dir(path)?;
+    match paths.next() {
+        Some(_) => Err(Error::from(ErrorKind::AlreadyExists)),
+        None => Ok(()),
+    }
+}
+
 pub fn run(
     source: &str,
     target_folder: &str,
     folder_length: usize,
     file_length: usize,
     buffer_size: usize,
-) -> io::Result<()> {
+) -> Result<(), Error> {
     let start_lookup = Instant::now();
 
     // create target folder
     create_folder_by_path(target_folder)
         .expect(&format!("Could not create base folder {}", target_folder));
+    directory_is_empty(target_folder).expect(&format!("Directory {} is not empty", target_folder));
 
     // variables for looping
     let mut current_folder = String::new(); // current used folder name
