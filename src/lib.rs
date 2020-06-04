@@ -1,3 +1,5 @@
+#![crate_name = "file_data_splitter"]
+
 use std::fs::{create_dir, read_dir, File, OpenOptions};
 use std::io::{
     prelude::{BufRead, Write},
@@ -62,6 +64,20 @@ fn directory_is_empty(path: &str) -> Result<(), Error> {
     }
 }
 
+/// Run file splitting.
+///
+/// # Arguments
+///
+/// * `source` - The data source file
+///
+/// * `target_folder` - The target folder. Is created if it does not exist. Must be empty.
+///
+/// * `folder_lenght` - The length of the folder names.
+///
+/// * `file_length` - The length of the file names.
+///
+/// * `buffer_size` - The buffer size in bytes to write the target files.
+///
 pub fn run(
     source: &str,
     target_folder: &str,
