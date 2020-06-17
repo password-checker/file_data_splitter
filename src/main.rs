@@ -8,6 +8,17 @@ fn main() -> io::Result<()> {
         Ok(_) => Ok(()),
         _ => Err(format!(r#"Value have to be a number, not "{}"."#, &value)),
     };
+    let map_eol = |value: &str| match value {
+        "CR+LF" => "\r\n",
+        "LF" => "\n",
+        "CR" => "\r",
+        "VT" => "\u{000B}",
+        "FF" => "\u{000C}",
+        "NEL" => "\u{0085}",
+        "LS" => "\u{2028}",
+        "PS" => "\u{2029}",
+        _ => "\n",
+    };
     let version: Option<&'static str> = option_env!("CARGO_PKG_VERSION");
     let authors: Option<&'static str> = option_env!("CARGO_PKG_AUTHORS");
     let matches = App::new("File Data Splitter")
@@ -62,6 +73,23 @@ graphemes!"#,
                 .validator(validate_usize),
         )
         .arg(
+            Arg::with_name("eol")
+            .short("e")
+            .long("eol")
+            .value_name("EOL SEQUENCE")
+            .help("Defines the newline sequence.")
+            .takes_value(true)
+            .possible_value("LF")
+            .possible_value("CR+LF")
+            .possible_value("CR")
+            .possible_value("VT")
+            .possible_value("FF")
+            .possible_value("NEL")
+            .possible_value("LS")
+            .possible_value("PS")
+            .default_value("LF")
+        )
+        .arg(
             Arg::with_name("INPUT_FILE")
                 .help("Sets the input file to use")
                 .required(true)
@@ -70,7 +98,6 @@ graphemes!"#,
         .arg(
             Arg::with_name("OUTPUT_FOLDER")
                 .help("Sets the output folder to use. Is created if it does not exist. Must be empty.")
-                .required(false)
                 .index(2)
                 .default_value("file_output"),
         )
@@ -93,11 +120,13 @@ graphemes!"#,
         .unwrap()
         .parse::<usize>()
         .unwrap();
+    let eol = matches.value_of("eol").map(map_eol).unwrap();
     run(
         &source,
         &target_folder,
         folder_length,
         file_length,
         buffer_size,
+        eol,
     )
 }

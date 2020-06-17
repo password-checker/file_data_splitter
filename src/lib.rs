@@ -78,12 +78,15 @@ fn directory_is_empty(path: &str) -> Result<(), Error> {
 ///
 /// * `buffer_size` - The buffer size in bytes to write the target files.
 ///
+/// * `eol` - The end of line sign(s).
+///
 pub fn run(
     source: &str,
     target_folder: &str,
     folder_length: usize,
     file_length: usize,
     buffer_size: usize,
+    eol: &str,
 ) -> Result<(), Error> {
     let start_lookup = Instant::now();
 
@@ -111,6 +114,7 @@ pub fn run(
         let folder = &line[..s1];
         let file = &line[s1..s2];
         let value = line[s2..].as_bytes();
+        let eol = eol.as_bytes();
 
         // create folder if needed, if folder is changed (from prio loop pass) current_file will be deleted
         let created_folder = if current_folder.eq(folder) {
@@ -129,7 +133,7 @@ pub fn run(
         let mut writer = if current_file.eq(file) {
             // file is already opened: reuse BufWriter (and add a new line sign)
             let mut w = opened_file.unwrap();
-            w.write_all(b"\n").expect("Unable to write newline");
+            w.write_all(eol).expect("Unable to write newline");
             w
         } else {
             if opened_file.is_some() {
