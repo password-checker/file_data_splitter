@@ -1,24 +1,9 @@
 use std::io::{self};
 extern crate clap;
 use clap::{App, Arg};
-use file_data_splitter::run;
+use file_data_splitter::{map_eol, run, validate_usize};
 
 fn main() -> io::Result<()> {
-    let validate_usize = |value: String| match value.parse::<usize>() {
-        Ok(_) => Ok(()),
-        _ => Err(format!(r#"Value have to be a number, not "{}"."#, &value)),
-    };
-    let map_eol = |value: &str| match value {
-        "CR+LF" => "\r\n",
-        "LF" => "\n",
-        "CR" => "\r",
-        "VT" => "\u{000B}",
-        "FF" => "\u{000C}",
-        "NEL" => "\u{0085}",
-        "LS" => "\u{2028}",
-        "PS" => "\u{2029}",
-        _ => "\n",
-    };
     let version: Option<&'static str> = option_env!("CARGO_PKG_VERSION");
     let authors: Option<&'static str> = option_env!("CARGO_PKG_AUTHORS");
     let matches = App::new("File Data Splitter")

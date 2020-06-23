@@ -64,6 +64,27 @@ fn directory_is_empty(path: &str) -> Result<(), Error> {
     }
 }
 
+pub fn validate_usize(value: String) -> Result<(), String> {
+    match value.parse::<usize>() {
+        Ok(_) => Ok(()),
+        _ => Err(format!(r#"Value have to be a number, not "{}"."#, &value)),
+    }
+}
+
+pub fn map_eol(value: &str) -> &str {
+    match value {
+        "CR+LF" => "\r\n",
+        "LF" => "\n",
+        "CR" => "\r",
+        "VT" => "\u{000B}",
+        "FF" => "\u{000C}",
+        "NEL" => "\u{0085}",
+        "LS" => "\u{2028}",
+        "PS" => "\u{2029}",
+        _ => "\n",
+    }
+}
+
 /// Run file splitting.
 ///
 /// # Arguments
@@ -159,4 +180,35 @@ pub fn run(
     let elapsed = start_lookup.elapsed();
     println!("Duration {:?}", elapsed);
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_validate_usize() -> Result<(), String> {
+        validate_usize("2".to_string()).unwrap();
+        validate_usize("0".to_string()).unwrap();
+        validate_usize("99".to_string()).unwrap();
+        Ok(())
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_validate_usize_err1() {
+        validate_usize("".to_string()).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_validate_usize_err2() {
+        validate_usize("-1".to_string()).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_validate_usize_err3() {
+        validate_usize("A".to_string()).unwrap();
+    }
 }
