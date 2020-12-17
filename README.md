@@ -1,4 +1,4 @@
-# File Data Splitter ![Rust](https://github.com/password-checker/file_data_splitter/workflows/Rust/badge.svg) [![Build Status](https://travis-ci.org/password-checker/file_data_splitter.svg?branch=master)](https://travis-ci.org/password-checker/file_data_splitter)
+# File Data Splitter ![Rust](https://github.com/password-checker/file_data_splitter/workflows/Rust/badge.svg) [![Build Status](https://travis-ci.com/password-checker/file_data_splitter.svg?branch=master)](https://travis-ci.com/password-checker/file_data_splitter)
 
 ```
 File Data Splitter 0.1.0
